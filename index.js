@@ -21,6 +21,7 @@ async function run() {
     try {
         await client.connect();
         const toolsCollection = client.db('bd-tools').collection('tools');
+        const purchaseCollection = client.db('bd-tools').collection('purchase');
 
         //Load all tools
         app.get('/tools', async (req, res) => {
@@ -29,12 +30,18 @@ async function run() {
             const tools = await cursor.toArray();
             res.send(tools);
         })
-        //single data load
+        //single tools load
         app.get('/tools/:id', async (req, res) => {
             const id = req.params.id
             const query = { _id: ObjectId(id) };
             const tools = await toolsCollection.findOne(query);
             res.send(tools);
+        })
+        //purchase tools
+        app.post('/purchase', async (req, res) => {
+            const purchase = req.body;
+            const result = await purchaseCollection.insertOne(purchase)
+            res.send(result)
         })
     }
     finally {
