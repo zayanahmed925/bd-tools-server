@@ -37,11 +37,18 @@ async function run() {
             const tools = await toolsCollection.findOne(query);
             res.send(tools);
         })
-        //purchase tools
+        //purchase single tools
         app.post('/purchase', async (req, res) => {
             const purchase = req.body;
             const result = await purchaseCollection.insertOne(purchase)
             res.send(result)
+        })
+        //get single purchase
+        app.get('/purchase', async (req, res) => {
+            const userEmail = req.query.userEmail
+            const query = { userEmail: userEmail };
+            const purchase = await purchaseCollection.find(query).toArray();
+            res.send(purchase);
         })
     }
     finally {
