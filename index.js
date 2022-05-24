@@ -37,6 +37,17 @@ async function run() {
         const purchaseCollection = client.db('bd-tools').collection('purchase');
         const userCollection = client.db('bd-tools').collection('user');
 
+        //verify admin
+        const verifyAdmin = async (req, res, next) => {
+            const requester = req.decoded.email
+            const requesterAccount = await userCollection.findOne({ email: requester })
+            if (requesterAccount.role === 'admin') {
+                next()
+            }
+            else {
+                res.status(403).send({ message: 'Forbidden Access' })
+            }
+        }
         //Load all tools
         app.get('/tools', async (req, res) => {
             const query = {};
@@ -89,7 +100,7 @@ async function run() {
             res.send(users)
         })
         //make admin role
-        app.put('/user/admin/:email', verifyJwt, async (req, res) => {
+        app.put('/user/admin/:email', verifyJwt, verifyAdmin, async (req, res) => {
             const email = req.params.email;
 
             const filter = { email: email };
@@ -106,8 +117,8 @@ async function run() {
             const isAdmin = user.role === 'admin';
             res.send({ admin: isAdmin })
         })
-        //Single Item add
-        app.post('/tools', async (req, res) => {
+        //Single Tools add
+        app.post('/tools', verifyJwt, verifyAdmin, async (req, res) => {
             const newItem = req.body;
             const result = await toolsCollection.insertOne(newItem);
             res.send(result);
