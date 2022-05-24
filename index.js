@@ -99,7 +99,19 @@ async function run() {
             const result = await userCollection.updateOne(filter, updateDoc);
             res.send(result);
         })
-
+        //Get admin
+        app.get('/admin/:email', async (req, res) => {
+            const email = req.params.email;
+            const user = await userCollection.findOne({ email: email });
+            const isAdmin = user.role === 'admin';
+            res.send({ admin: isAdmin })
+        })
+        //Single Item add
+        app.post('/tools', async (req, res) => {
+            const newItem = req.body;
+            const result = await toolsCollection.insertOne(newItem);
+            res.send(result);
+        })
     }
     finally {
 
