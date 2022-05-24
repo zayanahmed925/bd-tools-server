@@ -49,7 +49,7 @@ async function run() {
             }
         }
         //Load all tools
-        app.get('/tools', async (req, res) => {
+        app.get('/tools', verifyJwt, async (req, res) => {
             const query = {};
             const cursor = toolsCollection.find(query);
             const tools = await cursor.toArray();
@@ -122,6 +122,13 @@ async function run() {
             const newItem = req.body;
             const result = await toolsCollection.insertOne(newItem);
             res.send(result);
+        })
+        //Delete a Tools by admin
+        app.delete('/tools/:id', verifyJwt, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const result = await toolsCollection.deleteOne(filter);
+            res.send(result)
         })
     }
     finally {
