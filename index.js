@@ -3,6 +3,7 @@ const cors = require('cors');
 const app = express()
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 5000;
 
@@ -48,8 +49,21 @@ async function run() {
                 res.status(403).send({ message: 'Forbidden Access' })
             }
         }
+        //For payment system
+        app.post('/create-payment-intent', verifyJwt, async (req, res) => {
+            const service = req.body;
+            const price = service.totalPrice;
+            const amount = price * 100;
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: "usd",
+                payment_method_types: ['card']
+            });
+            // console.log(paymentIntent)
+            res.send({ clientSecret: paymentIntent.client_secret });
+        })
         //Load all tools
-        app.get('/tools', verifyJwt, async (req, res) => {
+        app.get('/tools', async (req, res) => {
             const query = {};
             const cursor = toolsCollection.find(query);
             const tools = await cursor.toArray();
@@ -129,6 +143,13 @@ async function run() {
             const filter = { _id: ObjectId(id) };
             const result = await toolsCollection.deleteOne(filter);
             res.send(result)
+        })
+        //Purchase get by id
+        app.get('/purchase/:id', verifyJwt, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) }
+            const booking = await purchaseCollection.findOne(query);
+            res.send(booking)
         })
     }
     finally {
