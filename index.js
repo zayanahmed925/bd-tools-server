@@ -37,7 +37,7 @@ async function run() {
         const toolsCollection = client.db('bd-tools').collection('tools');
         const purchaseCollection = client.db('bd-tools').collection('purchase');
         const userCollection = client.db('bd-tools').collection('user');
-
+        const paymentCollection = client.db('bd-tools').collection('payment');
         //verify admin
         const verifyAdmin = async (req, res, next) => {
             const requester = req.decoded.email
@@ -61,6 +61,22 @@ async function run() {
             });
             // console.log(paymentIntent)
             res.send({ clientSecret: paymentIntent.client_secret });
+        })
+        //for payment update
+        app.patch('/purchase/:id', verifyJwt, async (req, res) => {
+            const id = req.params.id;
+            const payment = req.body;
+            const filter = { _id: ObjectId(id) };
+            const updatedDoc = {
+                $set: {
+                    paid: true,
+                    transactionId: payment.transactionId
+                }
+            };
+
+            const updatedPurchase = await purchaseCollection.updateOne(filter, updatedDoc);
+            const result = await paymentCollection.insertOne(payment);
+            res.send(updatedDoc);
         })
         //Load all tools
         app.get('/tools', async (req, res) => {
@@ -150,6 +166,13 @@ async function run() {
             const query = { _id: ObjectId(id) }
             const booking = await purchaseCollection.findOne(query);
             res.send(booking)
+        })
+        //Delete a purchase
+        app.delete('/purchase/:id', verifyJwt, async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const result = await purchaseCollection.deleteOne(filter);
+            res.send(result)
         })
     }
     finally {
