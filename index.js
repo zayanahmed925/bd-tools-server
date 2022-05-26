@@ -39,6 +39,7 @@ async function run() {
         const userCollection = client.db('bd-tools').collection('user');
         const paymentCollection = client.db('bd-tools').collection('payment');
         const reviewCollection = client.db('bd-tools').collection('review');
+        const profileCollection = client.db('bd-tools').collection('profile');
         //verify admin
         const verifyAdmin = async (req, res, next) => {
             const requester = req.decoded.email
@@ -84,7 +85,7 @@ async function run() {
             const query = {};
             const cursor = toolsCollection.find(query);
             const tools = await cursor.toArray();
-            res.send(tools);
+            res.send(tools.reverse());
         })
         //single tools load
         app.get('/tools/:id', async (req, res) => {
@@ -187,6 +188,25 @@ async function run() {
             const cursor = reviewCollection.find(query);
             const review = await cursor.toArray();
             res.send(review);
+        })
+        //Profile add and Update
+        app.put('/profile/:email', async (req, res) => {
+            const email = req.params.email;
+            const profile = req.body;
+            const filter = { email: email };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: profile,
+            };
+            const result = await profileCollection.updateOne(filter, updateDoc, options)
+            res.send(result)
+        })
+        //get profile
+        app.get('/profile/:email', async (req, res) => {
+            const query = {};
+            const cursor = profileCollection.find(query);
+            const profile = await cursor.toArray();
+            res.send(profile);
         })
 
     }
