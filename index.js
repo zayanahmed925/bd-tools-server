@@ -38,6 +38,7 @@ async function run() {
         const purchaseCollection = client.db('bd-tools').collection('purchase');
         const userCollection = client.db('bd-tools').collection('user');
         const paymentCollection = client.db('bd-tools').collection('payment');
+        const reviewCollection = client.db('bd-tools').collection('review');
         //verify admin
         const verifyAdmin = async (req, res, next) => {
             const requester = req.decoded.email
@@ -174,6 +175,20 @@ async function run() {
             const result = await purchaseCollection.deleteOne(filter);
             res.send(result)
         })
+        //Review post
+        app.post('/review', async (req, res) => {
+            const review = req.body;
+            const result = await reviewCollection.insertOne(review)
+            res.send(result)
+        })
+        //get all review
+        app.get('/review', verifyJwt, async (req, res) => {
+            const query = {};
+            const cursor = reviewCollection.find(query);
+            const review = await cursor.toArray();
+            res.send(review);
+        })
+
     }
     finally {
 
