@@ -183,7 +183,7 @@ async function run() {
             res.send(result)
         })
         //get all review
-        app.get('/review', verifyJwt, async (req, res) => {
+        app.get('/review', async (req, res) => {
             const query = {};
             const cursor = reviewCollection.find(query);
             const review = await cursor.toArray();
@@ -203,7 +203,9 @@ async function run() {
         })
         //get profile
         app.get('/profile/:email', async (req, res) => {
-            const query = {};
+            const email = req.params.email
+            // console.log(email)
+            const query = { email: email };
             const cursor = profileCollection.find(query);
             const profile = await cursor.toArray();
             res.send(profile);
