@@ -72,6 +72,7 @@ async function run() {
             const updatedDoc = {
                 $set: {
                     paid: true,
+                    status: 'pending',
                     transactionId: payment.transactionId
                 }
             };
@@ -209,6 +210,30 @@ async function run() {
             const cursor = profileCollection.find(query);
             const profile = await cursor.toArray();
             res.send(profile);
+        })
+        //get all purchase
+        app.get('/allPurchase', async (req, res) => {
+            const query = {};
+            const cursor = purchaseCollection.find(query);
+            const purchase = await cursor.toArray();
+            res.send(purchase);
+        })
+        app.put('/allPurchase/:id', verifyJwt, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const updateDoc = {
+                $set: {
+                    status: "delivered"
+                }
+            }
+            const result = await purchaseCollection.updateOne(query, updateDoc);
+            res.send(result)
+        })
+        app.delete('/allPurchase/:id', verifyJwt, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await purchaseCollection.deleteOne(query);
+            res.send(result);
         })
 
     }
